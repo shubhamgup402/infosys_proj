@@ -33,9 +33,15 @@ def execute_gemini_for_tweet_creation(prompt):
         response_mime_type="application/json",
         response_schema=genai.types.Schema(
             type=genai.types.Type.OBJECT,
-            required=["tweet", "prediction", "explanation"],
+            required=["tweet_a","tweet_b","tweet_a_vs_tweet_b", "prediction", "explanation"],
             properties={
-                "tweet": genai.types.Schema(
+                "tweet_a": genai.types.Schema(
+                    type=genai.types.Type.STRING,
+                ),
+                "tweet_b": genai.types.Schema(
+                    type=genai.types.Type.STRING,
+                ),
+                "tweet_a_vs_tweet_b": genai.types.Schema(
                     type=genai.types.Type.STRING,
                 ),
                 "prediction": genai.types.Schema(

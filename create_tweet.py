@@ -38,11 +38,15 @@ def create_tweet(analysed_tweets):
     out = execute_gemini_for_tweet_creation(system_prompt)
 
     out_dict = json.loads(out)
-    tweet = out_dict.get("tweet", "")
+    tweet_a = out_dict.get("tweet_a", "")
+    tweet_b = out_dict.get("tweet_b", "")
+    tweet_a_and_b = out_dict.get("tweet_a_and_b", "")
     prediction = out_dict.get("prediction", "")
     explanation = out_dict.get("explanation", "")
 
-    print(f"\nGenerated Tweet: {tweet} \n")
+    print(f"\nGenerated Tweet: {tweet_a} \n")
+    print(f"Example Tweet: {tweet_b} \n")
+    print(f"Tweet A vs Tweet B: {tweet_a_and_b} \n")
     print(f"Prediction: {prediction} \n")
     print(f"Explanation: {explanation} \n")
 
