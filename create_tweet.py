@@ -15,7 +15,7 @@ def top_5_selection(analysed_tweets, engagement_type: str):
 
 # --- Main function ---
 def create_tweet(analysed_tweets):
-    prompt = "Create the tweet for new iPhone 17 Pro"
+    prompt = "Create the tweet for the new NVIDIA H200 Tensor Core GPU designed for accelerating generative AI workloads."
     engagement_type = "like"
 
     top_5_tweets = top_5_selection(analysed_tweets, engagement_type)
@@ -26,12 +26,15 @@ def create_tweet(analysed_tweets):
 
     system_prompt = f""" 
     
-    Create the tweet compare it with the example tweets
-    and predict and explain why and how this tweet will
-    perform well comparing to the given examples. {prompt}
-    
-    Here are some example tweets and their sentiment analysis with very
-    high user engagements of other similar companies. Example Tweets: {top_5_tweets}
+    You are tasked with creating a high-engagement marketing tweet for {prompt}.  
+
+    Follow these steps:  
+    1. Analyze the following example tweets ({top_5_tweets}) from similar companies with very high user engagement.  
+    2. Identify the engagement drivers (tone, structure, keywords, emotional appeal, audience targeting).  
+    3. Generate a new tweet that leverages these proven strategies while staying authentic to {prompt}.  
+    4. Provide a direct comparison between the new tweet and one example tweet, highlighting similarities and differences.  
+    5. Predict how the new tweet will perform relative to the examples.  
+    6. Explain in detail why this tweet is likely to succeed (or fail) based on sentiment, clarity, and alignment with engagement patterns.  
 
     """
 
