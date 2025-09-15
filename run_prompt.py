@@ -7,60 +7,94 @@ from google import genai
 from google.genai import types
 
 
-GEMINI_API_KEY="AIzaSyA08WbpZborJpiXR3I7QEEQQrtjKmoH6cE"
+GEMINI_API_KEY="AIzaSyBcEei150JNnNwttiDcWiNqp7jsHVyocXA"
 
-def execute_gemini_for_tweet_creation(prompt):
-    client = genai.Client(
-        api_key=GEMINI_API_KEY,
-    )
+def execute_gemini_for_tweet_creation(prompt, model):
+    client = genai.Client(api_key=GEMINI_API_KEY)
 
-    model = "gemini-2.5-flash-lite"
     contents = [
-        types.Content( # user prompt (same as chat input)
+        types.Content(
             role="user",
-            parts=[
-                types.Part.from_text(text=prompt),
-            ],
+            parts=[ types.Part.from_text(text=prompt) ],
         ),
     ]
-    tools = [
-        # types.Tool(googleSearch=types.GoogleSearch()),
-    ]
+
+    thinking_budget_ms = 512
+
     generate_content_config = types.GenerateContentConfig(
         thinking_config=types.ThinkingConfig(
-            thinking_budget=0,
+            thinking_budget=thinking_budget_ms,
         ),
         response_mime_type="application/json",
-        response_schema=genai.types.Schema(
-            type=genai.types.Type.OBJECT,
-            required=["tweet_a","tweet_b","tweet_a_vs_tweet_b", "prediction", "explanation"],
+        response_schema=types.Schema(
+            type=types.Type.OBJECT,
+            required=["tweet"],
             properties={
-                "tweet_a": genai.types.Schema(
-                    type=genai.types.Type.STRING,
-                ),
-                "tweet_b": genai.types.Schema(
-                    type=genai.types.Type.STRING,
-                ),
-                "tweet_a_vs_tweet_b": genai.types.Schema(
-                    type=genai.types.Type.STRING,
-                ),
-                "prediction": genai.types.Schema(
-                    type=genai.types.Type.STRING,
-                ),
-                "explanation": genai.types.Schema(
-                    type=genai.types.Type.STRING,
-                ),
+                "tweet": types.Schema(type=types.Type.STRING),
+                
             },
         ),
     )
 
-    result = client.models.generate_content(
-        model=model,
-        contents=contents,
-        config=generate_content_config,
+    try:
+        result = client.models.generate_content(
+            model=model,
+            contents=contents,
+            config=generate_content_config,
+        )
+        return result.text  # should be a JSON string that matches the schema
+    except genai.errors.ClientError as e:
+        # show helpful debugging info
+        print("GenAI ClientError:", e)
+        raise
+    except Exception as e:
+        print("Unexpected error calling generate_content:", e)
+        raise
+
+
+
+
+def execute_gemini_for_tweet_compare(prompt, model):
+    client = genai.Client(api_key=GEMINI_API_KEY)
+
+    contents = [
+        types.Content(
+            role="user",
+            parts=[ types.Part.from_text(text=prompt) ],
+        ),
+    ]
+
+    thinking_budget_ms = 2000
+
+    generate_content_config = types.GenerateContentConfig(
+        thinking_config=types.ThinkingConfig(
+            thinking_budget=thinking_budget_ms,
+        ),
+        response_mime_type="application/json",
+        response_schema=types.Schema(
+            type=types.Type.OBJECT,
+            required=["prediction", "explanation"],
+            properties={
+                "prediction": types.Schema(type=types.Type.STRING),
+                "explanation": types.Schema(type=types.Type.STRING),
+            },
+        ),
     )
 
-    return result.text
+    try:
+        result = client.models.generate_content(
+            model=model,
+            contents=contents,
+            config=generate_content_config,
+        )
+        return result.text  # should be a JSON string that matches the schema
+    except genai.errors.ClientError as e:
+        # show helpful debugging info
+        print("GenAI ClientError:", e)
+        raise
+    except Exception as e:
+        print("Unexpected error calling generate_content:", e)
+        raise
 
 
 
