@@ -73,8 +73,9 @@ def execute_gemini_for_tweet_compare(prompt, model):
         response_mime_type="application/json",
         response_schema=types.Schema(
             type=types.Type.OBJECT,
-            required=["prediction", "explanation"],
+            required=["tweet_a_vs_tweet_b","prediction", "explanation"],
             properties={
+                "tweet_a_vs_tweet_b": types.Schema(type=types.Type.STRING),
                 "prediction": types.Schema(type=types.Type.STRING),
                 "explanation": types.Schema(type=types.Type.STRING),
             },

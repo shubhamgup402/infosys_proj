@@ -61,6 +61,7 @@ def create_tweet(analysed_tweets):
     Tweet A: {tweet_a}
     Tweet B: {tweet_b}
 
+    
     Carefully analyze Tweet A and Tweet B in terms of clarity, readability, emotional appeal, tone, authenticity to {prompt}, 
     and their use of engagement drivers such as hooks, questions, hashtags, emojis, and urgency. 
     Evaluate which tweet is more likely to achieve higher virality potential (likes, shares, comments), 
@@ -79,6 +80,7 @@ def create_tweet(analysed_tweets):
         print("Failed parsing comparison JSON. Raw response:\n", compare_out)
         raise
 
+    tweet_a_vs_tweet_b = compare_dict.get("tweet_a_vs_tweet_b", "")
     prediction = compare_dict.get("prediction", "")
     sleep(5)
     explanation = compare_dict.get("explanation", "")
@@ -87,6 +89,8 @@ def create_tweet(analysed_tweets):
     print(f"\nGenerated Tweet (model A): {tweet_a}\n")
     print(f"Generated Tweet (model B): {tweet_b}\n")
     print("=== Comparison Result ===")
+    print("=== Tweet A vs Tweet B ===")
+    print(tweet_a_vs_tweet_b)
     print(f"Prediction: {prediction}\n")
     print("=== Explanation ===")
     print(explanation)
