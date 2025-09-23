@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tweet Chatbot</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #15202b;
+            margin: 0;
+            min-height: 100vh;
+            color: #ffffff;
+        }
+        
+        .chat-container {
+            max-width: 800px;
+            height: 90vh;
+            margin: 20px auto;
+            background: #192734;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .chat-header {
+            padding: 20px;
+            background: #22303c;
+            text-align: center;
+            border-bottom: 1px solid #38444d;
+        }
+        
+        .chat-header h2 {
+            margin: 0;
+            font-weight: 600;
+            color: #1d9bf0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .chat-header h2::before {
+            content: '';
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: url('data:image/svg+xml,<svg fill="%231d9bf0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23.643 4.937c-.835.37-1.732.62-2.675.733.962-.576 1.7-1.49 2.048-2.578-.9.534-1.897.922-2.958 1.13-.85-.904-2.06-1.47-3.4-1.47-2.572 0-4.658 2.086-4.658 4.66 0 .364.042.718.12 1.06-3.873-.195-7.304-2.05-9.602-4.868-.4.69-.63 1.49-.63 2.342 0 1.616.823 3.043 2.072 3.878-.764-.025-1.482-.234-2.11-.583v.06c0 2.257 1.605 4.14 3.737 4.568-.392.106-.803.162-1.227.162-.3 0-.593-.028-.877-.082.593 1.85 2.313 3.198 4.352 3.234-1.595 1.25-3.604 1.995-5.786 1.995-.376 0-.747-.022-1.112-.065 2.062 1.323 4.51 2.093 7.14 2.093 8.57 0 13.255-7.098 13.255-13.254 0-.2-.005-.402-.014-.602.91-.658 1.7-1.477 2.323-2.41z"/></svg>') no-repeat center center;
+        }
+        
+        .chat-log {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background: #192734;
+        }
+        
+        .chat-log::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .chat-log::-webkit-scrollbar-track {
+            background: #22303c;
+        }
+        
+        .chat-log::-webkit-scrollbar-thumb {
+            background: #38444d;
+            border-radius: 4px;
+        }
+        
+        .message-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .user-msg, .bot-msg {
+            max-width: 85%;
+            padding: 16px 20px;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            position: relative;
+        }
+        
+        .user-msg {
+            background: #1d9bf0;
+            color: white;
+            align-self: flex-end;
+            margin-left: 15%;
+        }
+        
+        .bot-msg {
+            background: #273340;
+            color: #ffffff;
+            align-self: flex-start;
+            margin-right: 15%;
+            border: 1px solid #38444d;
+        }
+        
+        .tweet-content {
+            margin: 8px 0;
+            padding: 12px;
+            background: #22303c;
+            border-radius: 12px;
+            border: 1px solid #38444d;
+        }
+        
+        .tweet-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #38444d;
+        }
+        
+        .copy-btn {
+            background: none;
+            border: 1px solid #1d9bf0;
+            color: #1d9bf0;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .copy-btn:hover {
+            background: rgba(29, 155, 240, 0.1);
+        }
+        
+        .copy-btn.copied {
+            background: #1d9bf0;
+            color: white;
+        }
+        
+        .chat-form {
+            display: flex;
+            gap: 12px;
+            padding: 20px;
+            background: #22303c;
+            border-top: 1px solid #38444d;
+        }
+        
+        input[type=text] {
+            flex: 1;
+            padding: 14px;
+            border-radius: 20px;
+            border: 1px solid #38444d;
+            background: #273340;
+            color: white;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+        
+        input[type=text]::placeholder {
+            color: #8899a6;
+        }
+        
+        input[type=text]:focus {
+            border-color: #1d9bf0;
+            box-shadow: 0 0 0 2px rgba(29, 155, 240, 0.2);
+        }
+        
+        button[type=submit] {
+            padding: 12px 24px;
+            border-radius: 20px;
+            border: none;
+            background: #1d9bf0;
+            color: white;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        button[type=submit]:hover {
+            background: #1a8cd8;
+        }
+        
+        button[type=submit]:disabled {
+            background: #1d9bf0;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .generating {
+            position: absolute;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #273340;
+            color: #1d9bf0;
+            padding: 8px 16px;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #38444d;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .generating.show {
+            opacity: 1;
+        }
+        
+        .generating .dots {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .generating .dot {
+            width: 4px;
+            height: 4px;
+            background: #1d9bf0;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite;
+        }
+        
+        .generating .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .generating .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-4px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container" id="chat-container">
+        <div class="chat-header">
+            <h2 style="margin:0; font-weight:600; color:#1976d2;">Tweet Chatbot</h2>
+        </div>
+        <div class="chat-log" id="chat-log">
+            {% if user_prompt %}
+                <div class="message-container">
+                    <div class="user-msg">{{ user_prompt }}</div>
+                </div>
+            {% endif %}
+            {% if result %}
+                <div class="message-container">
+                    <div class="bot-msg">
+                        <div class="tweet-content">
+                            <strong style="color: #1d9bf0">Model A:</strong>
+                            <div class="tweet-text">{{ result.tweet_a }}</div>
+                            <div class="tweet-actions">
+                                <button class="copy-btn" onclick="copyToClipboard(this, '{{ result.tweet_a }}')">Copy Tweet</button>
+                            </div>
+                        </div>
+                        
+                        <div class="tweet-content">
+                            <strong style="color: #1d9bf0">Model B:</strong>
+                            <div class="tweet-text">{{ result.tweet_b }}</div>
+                            <div class="tweet-actions">
+                                <button class="copy-btn" onclick="copyToClipboard(this, '{{ result.tweet_b }}')">Copy Tweet</button>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 16px">
+                            <strong style="color: #1d9bf0">Comparison:</strong>
+                            <p>{{ result.tweet_a_vs_tweet_b }}</p>
+                            
+                            <strong style="color: #1d9bf0">Prediction:</strong>
+                            <p>{{ result.prediction }}</p>
+                            
+                            <strong style="color: #1d9bf0">Explanation:</strong>
+                            <p>{{ result.explanation }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        <form method="post" class="chat-form" id="chat-form">
+            <input type="text" name="prompt" id="prompt-input" placeholder="Enter your tweet prompt..." autocomplete="off" required>
+            <button type="submit" id="send-btn">Send</button>
+        </form>
+        <div class="generating" id="generating">
+            Generating tweets<span class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>
+        </div>
+    </div>
+</body>
+<script>
+    function scrollChatToBottom() {
+        const chatLog = document.getElementById('chat-log');
+        if (chatLog) {
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+    }
+
+    function copyToClipboard(button, text) {
+        navigator.clipboard.writeText(text).then(() => {
+            button.textContent = 'Copied!';
+            button.classList.add('copied');
+            setTimeout(() => {
+                button.textContent = 'Copy Tweet';
+                button.classList.remove('copied');
+            }, 2000);
+        });
+    }
+
+    const chatForm = document.getElementById('chat-form');
+    const submitBtn = document.getElementById('send-btn');
+    const generating = document.getElementById('generating');
+    const promptInput = document.getElementById('prompt-input');
+
+    if (chatForm) {
+        chatForm.addEventListener('submit', function(e) {
+            submitBtn.disabled = true;
+            generating.classList.add('show');
+        });
+    }
+
+    window.addEventListener('pageshow', function() {
+        submitBtn.disabled = false;
+        generating.classList.remove('show');
+        scrollChatToBottom();
+    });
+
+    if (promptInput) {
+        promptInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (promptInput.value.trim()) {
+                    chatForm.requestSubmit();
+                }
+            }
+        });
+    }
+
+    window.onload = function() {
+        scrollChatToBottom();
+        
+        // Smooth entrance animation for messages
+        const messages = document.querySelectorAll('.message-container');
+        messages.forEach((msg, index) => {
+            msg.style.opacity = '0';
+            msg.style.transform = 'translateY(20px)';
+            msg.style.transition = 'all 0.3s ease';
+            
+            setTimeout(() => {
+                msg.style.opacity = '1';
+                msg.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    };
+</script>
+</html>

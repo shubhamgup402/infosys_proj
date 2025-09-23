@@ -11,8 +11,9 @@ def top_5_selection(analysed_tweets, engagement_type: str):
     return filtered_df.nlargest(5, columns=['engagement_score']).to_dict(orient="records")
 
 # --- Main function ---
-def create_tweet(analysed_tweets):
-    prompt = "Create the tweet for the new NVIDIA H200 Tensor Core GPU designed for accelerating generative AI workloads."
+def create_tweet(analysed_tweets, prompt=None, return_results=False):
+    if prompt is None:
+        prompt = "Create the tweet for the new NVIDIA H200 Tensor Core GPU designed for accelerating generative AI workloads."
     engagement_type = "like"
 
     top_5_tweets = top_5_selection(analysed_tweets, engagement_type)
@@ -42,7 +43,7 @@ def create_tweet(analysed_tweets):
     sleep(5)
 
     # --- Generate tweet with model B ---
-    out_b = execute_gemini_for_tweet_creation(prompt=system_prompt, model="gemini-2.5-pro")
+    out_b = execute_gemini_for_tweet_creation(prompt=system_prompt, model="gemini-2.5-flash-lite")
     try:
         out_dict_b = json.loads(out_b)
     except Exception:
@@ -86,14 +87,23 @@ def create_tweet(analysed_tweets):
     explanation = compare_dict.get("explanation", "")
 
     # --- Print outputs ---
-    print(f"\nGenerated Tweet (model A): {tweet_a}\n")
-    print(f"Generated Tweet (model B): {tweet_b}\n")
-    print("=== Comparison Result ===")
-    print("=== Tweet A vs Tweet B ===")
-    print(tweet_a_vs_tweet_b)
-    print(f"Prediction: {prediction}\n")
-    print("=== Explanation ===")
-    print(explanation)
+    if return_results:
+        return {
+            "tweet_a": tweet_a,
+            "tweet_b": tweet_b,
+            "tweet_a_vs_tweet_b": tweet_a_vs_tweet_b,
+            "prediction": prediction,
+            "explanation": explanation,
+        }
+    else:
+        print(f"\nGenerated Tweet (model A): {tweet_a}\n")
+        print(f"Generated Tweet (model B): {tweet_b}\n")
+        print("=== Comparison Result ===")
+        print("=== Tweet A vs Tweet B ===")
+        print(tweet_a_vs_tweet_b)
+        print(f"Prediction: {prediction}\n")
+        print("=== Explanation ===")
+        print(explanation)
 
 
 # --- Run the pipeline ---

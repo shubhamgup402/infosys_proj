@@ -18,19 +18,6 @@ if __name__ == "__main__":
         wait_on_rate_limit=True,
     )
 
-    # user = twitterClient.get_user(username="nvidia")
-    
-    # user_id = user.data.id
-
-    # tweets = twitterClient.get_users_tweets(
-    #     user_id, max_results=50, tweet_fields=['created_at', 'text']
-    #     )
-
-    # with open("extracted_tweets.json", "w") as json_file:
-    #     json.dump([tweet.data for tweet in tweets.data], json_file, indent=4)
-
-    # Latest_5_tweets = twitterClient.get_users_tweets(user_id, max_results=5)
-
 
     user = twitterClient.get_user(username="nvidia")
     user_id = user.data.id
