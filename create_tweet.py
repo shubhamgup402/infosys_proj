@@ -10,6 +10,30 @@ def top_5_selection(analysed_tweets, engagement_type: str):
     filtered_df = df[df['engagement_type'] == engagement_type]
     return filtered_df.nlargest(5, columns=['engagement_score']).to_dict(orient="records")
 
+# --- Validation function ---
+def validate_tweet(tweet):
+    """
+    Validates a tweet and truncates it if necessary
+    Returns: (valid_tweet, is_valid)
+    """
+    if not tweet:
+        return "", False
+        
+    # Remove extra whitespace
+    tweet = ' '.join(tweet.split())
+    
+    # Check for placeholder text
+    placeholders = ['[', ']', '[Company]', '[Link]', '[Name]', '[Customer']
+    if any(p in tweet for p in placeholders):
+        return tweet, False
+        
+    # Truncate if too long
+    if len(tweet) > 280:
+        # Try to truncate at a word boundary
+        tweet = tweet[:277] + "..."
+        
+    return tweet, len(tweet) <= 280
+
 # --- Main function ---
 def create_tweet(analysed_tweets, prompt=None, return_results=False):
     if prompt is None:
@@ -21,13 +45,22 @@ def create_tweet(analysed_tweets, prompt=None, return_results=False):
     system_prompt = f"""
     You are tasked with creating a high-engagement marketing tweet for {prompt}.
 
+    CRITICAL REQUIREMENTS:
+    - Tweet MUST be under 250 characters (strict limit, including spaces and punctuation)
+    - NO placeholder text like [Company Name] or [Link]
+    - Use real, specific content only
+    - Include relevant hashtags but limit them to 2-3 most impactful ones
+    - If mentioning URLs, include a real link only if it’s essential. Otherwise, omit it completely.
+
+
     Follow these steps:
     1. Analyze the following example tweets ({top_5_tweets}) from similar companies with very high user engagement.
-    2. Identify the engagement drivers...
-    3. Generate a new tweet that leverages these proven strategies while staying authentic to {prompt}.
-    4. Provide a direct comparison between the new tweet and one example tweet...
+    2. Generate a new tweet that leverages these proven strategies while staying authentic to {prompt}.
+    3. Before finalizing, count the exact number of characters and ensure it's under 250.
+    4. Provide a direct comparison between the new tweet and one example tweet.
     5. Predict how the new tweet will perform relative to the examples.
-    6. Explain in detail why this tweet is likely to succeed (or fail)...
+    6. Explain in detail why this tweet is likely to succeed (or fail).
+    7. Identify the engagement drivers.
     """
 
     # --- Generate tweet with model A ---
@@ -39,6 +72,18 @@ def create_tweet(analysed_tweets, prompt=None, return_results=False):
         raise
 
     tweet_a = out_dict_a.get("tweet", "")
+    tweet_a, is_valid_a = validate_tweet(tweet_a)
+    
+    # If tweet is invalid, try one more time
+    if not is_valid_a:
+        sleep(5)
+        out_a = execute_gemini_for_tweet_creation(prompt=system_prompt, model="gemini-2.5-flash-lite")
+        try:
+            out_dict_a = json.loads(out_a)
+            tweet_a = out_dict_a.get("tweet", "")
+            tweet_a, is_valid_a = validate_tweet(tweet_a)
+        except Exception:
+            print("Failed second attempt for model A")
 
     sleep(5)
 
@@ -52,6 +97,19 @@ def create_tweet(analysed_tweets, prompt=None, return_results=False):
 
     sleep(5)
     tweet_b = out_dict_b.get("tweet", "")
+    tweet_b, is_valid_b = validate_tweet(tweet_b)
+    
+    # If tweet is invalid, try one more time
+    if not is_valid_b:
+        sleep(5)
+        out_b = execute_gemini_for_tweet_creation(prompt=system_prompt, model="gemini-2.5-flash-lite")
+        try:
+            out_dict_b = json.loads(out_b)
+            tweet_b = out_dict_b.get("tweet", "")
+            tweet_b, is_valid_b = validate_tweet(tweet_b)
+        except Exception:
+            print("Failed second attempt for model B")
+    
     sleep(5)
 
     # --- Comparison prompt ---

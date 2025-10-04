@@ -142,6 +142,27 @@
             color: white;
         }
         
+        .post-btn {
+            background: #1d9bf0;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        
+        .post-btn:hover {
+            background: #1a8cd8;
+        }
+        
+        .post-btn:disabled {
+            background: #1d9bf0;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
         .chat-form {
             display: flex;
             gap: 12px;
@@ -264,7 +285,9 @@
                             <strong style="color: #1d9bf0">Model A:</strong>
                             <div class="tweet-text">{{ result.tweet_a }}</div>
                             <div class="tweet-actions">
-                                <button class="copy-btn" onclick="copyToClipboard(this, '{{ result.tweet_a }}')">Copy Tweet</button>
+                                <!-- 💡 Use data-tweet attributes instead of inline JS -->
+                                <button class="copy-btn" data-tweet="{{ result.tweet_a|e }}">Copy Tweet</button>
+                                <button class="post-btn" data-tweet="{{ result.tweet_a|e }}">Post to Twitter</button>
                             </div>
                         </div>
                         
@@ -272,7 +295,8 @@
                             <strong style="color: #1d9bf0">Model B:</strong>
                             <div class="tweet-text">{{ result.tweet_b }}</div>
                             <div class="tweet-actions">
-                                <button class="copy-btn" onclick="copyToClipboard(this, '{{ result.tweet_b }}')">Copy Tweet</button>
+                                <button class="copy-btn" data-tweet="{{ result.tweet_b|e }}">Copy Tweet</button>
+                                <button class="post-btn" data-tweet="{{ result.tweet_b|e }}">Post to Twitter</button>
                             </div>
                         </div>
                         
@@ -302,9 +326,7 @@
 <script>
     function scrollChatToBottom() {
         const chatLog = document.getElementById('chat-log');
-        if (chatLog) {
-            chatLog.scrollTop = chatLog.scrollHeight;
-        }
+        if (chatLog) chatLog.scrollTop = chatLog.scrollHeight;
     }
 
     function copyToClipboard(button, text) {
@@ -318,13 +340,56 @@
         });
     }
 
+    async function postTweet(button, tweetText) {
+        button.disabled = true;
+        button.textContent = 'Posting...';
+        
+        try {
+            const response = await fetch('/post_tweet', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tweet: tweetText })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                button.textContent = 'Posted!';
+                if (data.tweet_url) {
+                    alert('Tweet posted successfully! URL: ' + data.tweet_url);
+                }
+            } else {
+                throw new Error(data.error || 'Unknown error');
+            }
+        } catch (error) {
+            button.textContent = 'Error!';
+            alert('Failed to post tweet: ' + error.message);
+        } finally {
+            setTimeout(() => {
+                button.textContent = 'Post to Twitter';
+                button.disabled = false;
+            }, 2000);
+        }
+    }
+
+    // 💡 Centralized event listener for copy/post buttons
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('copy-btn')) {
+            const tweet = e.target.getAttribute('data-tweet');
+            copyToClipboard(e.target, tweet);
+        } else if (e.target.classList.contains('post-btn')) {
+            const tweet = e.target.getAttribute('data-tweet');
+            postTweet(e.target, tweet);
+        }
+    });
+
     const chatForm = document.getElementById('chat-form');
     const submitBtn = document.getElementById('send-btn');
     const generating = document.getElementById('generating');
     const promptInput = document.getElementById('prompt-input');
 
     if (chatForm) {
-        chatForm.addEventListener('submit', function(e) {
+        chatForm.addEventListener('submit', function() {
             submitBtn.disabled = true;
             generating.classList.add('show');
         });
@@ -349,14 +414,11 @@
 
     window.onload = function() {
         scrollChatToBottom();
-        
-        // Smooth entrance animation for messages
         const messages = document.querySelectorAll('.message-container');
         messages.forEach((msg, index) => {
             msg.style.opacity = '0';
             msg.style.transform = 'translateY(20px)';
             msg.style.transition = 'all 0.3s ease';
-            
             setTimeout(() => {
                 msg.style.opacity = '1';
                 msg.style.transform = 'translateY(0)';
